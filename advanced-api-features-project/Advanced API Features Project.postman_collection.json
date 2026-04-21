@@ -1,0 +1,310 @@
+{
+  "info": {
+    "_postman_id": "32c67acf-b32f-4efb-b4fa-ff9ff7db484a",
+    "name": "Advanced API Features Project",
+    "description": "Postman collection generated from the uploaded Express project.\n\nBase URL defaults to http://localhost:5010 because server.js starts Express on port 5010.\n\nRoutes found in code:\n- POST /auth/signup\n- POST /auth/login\n- GET /users\n- DELETE /users/:id\n\nNotes based on the current code:\n- /auth/login returns a JWT for a hardcoded super_admin user, provided JWT_SECRET is set.\n- /users requires Authorization: Bearer <token>.\n- DELETE /users/:id requires a token whose role is super_admin. The current login controller issues such a token.\n- signup does not persist to a database in the current code; it only returns the hashed user payload.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "11513518",
+    "_collection_link": "https://go.postman.co/collection/11513518-32c67acf-b32f-4efb-b4fa-ff9ff7db484a?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Signup",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Govind\",\n  \"email\": \"govind@example.com\",\n  \"password\": \"Password123\",\n  \"role\": \"user\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:5010/auth/signup",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5010",
+              "path": [
+                "auth",
+                "signup"
+              ]
+            },
+            "description": "Creates a demo signup response. In the current code, this route validates required fields, hashes the password, and returns the user payload. It does not save to a database."
+          },
+          "response": []
+        },
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "const jsonData = pm.response.json();",
+                  "",
+                  "pm.test('Response contains token', function () {",
+                  "    pm.expect(jsonData.success).to.eql(true);",
+                  "    pm.expect(jsonData.token).to.be.a('string');",
+                  "});",
+                  "",
+                  "if (jsonData.token) {",
+                  "    pm.collectionVariables.set('token', jsonData.token);",
+                  "}"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@example.com\",\n  \"password\": \"Password123\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:5010/auth/login",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5010",
+              "path": [
+                "auth",
+                "login"
+              ]
+            },
+            "description": "Returns a JWT signed with process.env.JWT_SECRET. In the current code, credentials are not checked against a database; the controller issues a token for a hardcoded user id 123 and role super_admin."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Users",
+      "item": [
+        {
+          "name": "Get Users - Basic",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:5010/users",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5010",
+              "path": [
+                "users"
+              ]
+            },
+            "description": "Protected route. Requires Authorization: Bearer {{token}}. Returns a demo payload showing pagination, filtering, sorting, and search query handling."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Users - Pagination, Filter, Search, Sort",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/users?page=2&limit=5&role=user&search=gov&sortBy=createdAt&order=desc",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "2"
+                },
+                {
+                  "key": "limit",
+                  "value": "5"
+                },
+                {
+                  "key": "role",
+                  "value": "user"
+                },
+                {
+                  "key": "search",
+                  "value": "gov"
+                },
+                {
+                  "key": "sortBy",
+                  "value": "createdAt"
+                },
+                {
+                  "key": "order",
+                  "value": "desc"
+                }
+              ]
+            },
+            "description": "Demonstrates how the controller builds page, limit, skip, role filter, regex search, and sort order from the query string."
+          },
+          "response": []
+        },
+        {
+          "name": "Delete User by ID",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/users/{{userId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "{{userId}}"
+              ]
+            },
+            "description": "Protected route requiring auth plus role('super_admin'). The current route returns a static success message and does not actually delete from a database."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Negative Tests",
+      "item": [
+        {
+          "name": "Get Users - No Token",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjEyMyIsInJvbGUiOiJzdXBlcl9hZG1pbiIsImlhdCI6MTc3Njc3NDQyMiwiZXhwIjoxNzc3Mzc5MjIyfQ.AOlOoBuWROs-yvusJLI5F1VFnj9bJaePXwZxAyJUsFQ",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:5010/users",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5010",
+              "path": [
+                "users"
+              ]
+            },
+            "description": "Expected result from auth middleware: 401 with message 'No token provided'."
+          },
+          "response": []
+        },
+        {
+          "name": "Signup - Missing Fields",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjEyMyIsInJvbGUiOiJzdXBlcl9hZG1pbiIsImlhdCI6MTc3Njc3NDQyMiwiZXhwIjoxNzc3Mzc5MjIyfQ.AOlOoBuWROs-yvusJLI5F1VFnj9bJaePXwZxxAyJUsFQ",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"missingname@example.com\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:5010/auth/signup",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5010",
+              "path": [
+                "auth",
+                "signup"
+              ]
+            },
+            "description": "Expected result from signup controller: 400 with message 'All fields are required'."
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:5010"
+    },
+    {
+      "key": "token",
+      "value": ""
+    },
+    {
+      "key": "userId",
+      "value": "123"
+    }
+  ]
+}

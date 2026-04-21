@@ -3,7 +3,7 @@ const loggerMiddleware = require("./middlewares/logger.middleware");
 const authMiddleware = require("./middlewares/auth.middleware");
 
 const app = express();
-const PORT = process.env.PORT || 5001;
+const PORT = process.env.PORT || 5003;
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
